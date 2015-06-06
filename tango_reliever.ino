@@ -4,13 +4,12 @@
 //// Kaho Abe                                                                                ////
 //// May 24, 2015                                                                            ////
 /////////////////////////////////////////////////////////////////////////////////////////////////
-//// Based on:                                                                               ////
-//// Adafruit Neopixels Simple Example                                                       ////
-//// Sainsmart & Arduino:                                                                    ////
-//// http://arduinotronics.blogspot.com/2013/01/working-with-sainsmart-5v-relay-board.html   ////
 /////////////////////////////////////////////////////////////////////////////////////////////////
+// Based on:                                                                                 ////
+// Adafruit Neopixels Simple Example                                                         ////
+// Sainsmart & Arduino:                                                                      ////
+// http://arduinotronics.blogspot.com/2013/01/working-with-sainsmart-5v-relay-board.html     ////
 /////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 ////////////////////////////////////LIBRARIES///////////////////////////////
 #include <Adafruit_NeoPixel.h>
@@ -23,12 +22,17 @@ char ACTIVE = '1'; // full glow, high vibe , fast flicker lights
 char TIMETRAVEL = '2'; //sparkly, high vibe, fast flicker lights
 char HOLD = '3'; //red, high vibe, fast flicker lights
 char RELEASE = '4'; // blue, SILENT, lights normal
-
+char RED = '5'; 
+char BLUE = '6'; 
+char LOWVIBE = '7'; 
+char HIGHVIBE = '8'; 
 
 ////////////////////////////////////OTHER VARIABLES////////////////////////////////////
 //Neopixel variables
-#define PIN 8
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
+#define NEOPIN1 8
+#define NEOPIN2 9
+Adafruit_NeoPixel bulb = Adafruit_NeoPixel(60, NEOPIN1, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel tube = Adafruit_NeoPixel(15, NEOPIN2, NEO_GRB + NEO_KHZ800);
 float counter = 0;                                                                                                                                                                             
 float brightness = 0;
 
@@ -40,8 +44,10 @@ int VIBE = 7;                // IN4 connected to digital pin 10
 
 int val = 0;
 
-#define rxPin 13
-#define txPin 12
+#define rxPin 12
+#define txPin 11
+
+boolean ghostLightState =0;
 
 SoftwareSerial mySerial(rxPin, txPin); // RX, TX
 char myChar ;
@@ -49,9 +55,12 @@ char myChar ;
 void setup()
 {
   Serial.begin(9600);
-
-  strip.begin();
-  strip.show(); // Initialize all pixels to 'off'
+ mySerial.begin(9600);
+  
+  bulb.begin();
+  bulb.show(); // Initialize all pixels to 'off'
+  tube.begin();
+  tube.show(); // Initialize all pixels to 'off'
   
   //Relay set up
   pinMode(relayPin1, OUTPUT);      // sets the digital pin as output
@@ -62,67 +71,78 @@ void setup()
   digitalWrite(LIGHT1, HIGH);        // Prevents relays from starting up engaged
   digitalWrite(LIGHT2, HIGH);        // Prevents relays from starting up engaged
   digitalWrite(VIBE, HIGH);        // Prevents relays from starting up engaged
- 
-   mySerial.begin(9600);
+ ghostLightState = false;
+ ghostLightON();
 
 }
 
 ////////////////////////////////////LOOP////////////////////////////////////
 void loop()
 {
-
   counter= counter + 0.25;
-  while (mySerial.available()) {
-    myChar = mySerial.read();
-  }
+ // while (Serial.available()) {
+//  myChar = Serial.read();
+//Serial.print(myChar);
+
+
+
+if (mySerial.available()) {
+myChar = mySerial.read();
+Serial.print(myChar);
+ }
 
   if (myChar == NORMAL) { //half glow, half vibe. low flicker lights 
+
   glowWhiteHalf();
   vibeHalf();
+ theaterChase(tube.Color(127, 127, 127), 0);
   }
   
   else if (myChar == ACTIVE) {// full glow, high vibe , fast flicker lights 
-    glowWhiteFull();
+     ghostLightON();
+     glowWhiteFull();
     vibeFull();
+    theaterChase(tube.Color(127, 127, 127), 0);
   }
   
   else if (myChar == TIMETRAVEL) { //sparkly, high vibe, fast flicker lights
-    glowWhiteFullSparks();
+     ghostLightON();
+     glowWhiteFullSparks();
     vibeFull();
+    theaterChase(tube.Color(127, 127, 127), 0);
   }
   
   else if(myChar == HOLD) { //red, high vibe, fast flicker lights
-   angryRed();
+    ghostLightON();
+    angryRed();
+   theaterChase(bulb.Color(127,   0,   0), 0);
    vibeFull();
+ 
   }
   
   else if (myChar == RELEASE) { // blue, SILENT, lights normal
-   blue();
-   digitalWrite(VIBE, HIGH);
+    ghostLightOFF();
+    blue();
+   theaterChase(tube.Color(0, 0, 127), 0);
   }
-//  digitalWrite(relayPin1, LOW);   // energizes the relay and lights the LED
-//  digitalWrite(LIGHT1, LOW);   // energizes the relay and lights the LED
-//  digitalWrite(LIGHT2, LOW);   // energizes the relay and lights the LED
-//  digitalWrite(VIBE, LOW);   // energizes the relay and lights the LED
-//  delay(5000);                  // waits for a second
-//  digitalWrite(relayPin1, HIGH);    // de-energizes the relay and LED is off
-//  digitalWrite(LIGHT1, HIGH);    // de-energizes the relay and LED is off
-//  digitalWrite(LIGHT2, HIGH);    // de-energizes the relay and LED is off
-//  digitalWrite(VIBE, HIGH);    // de-energizes the relay and LED is off
-//  delay(1000);                  // waits for a second
-   // Some example procedures showing how to display to the pixels:
-//     colorWipe(strip.Color(255, 0, 0), 50); // Red
-//  colorWipe(strip.Color(255, 0, 0), 50); // Red
-//  colorWipe(strip.Color(0, 255, 0), 50); // Green
-//  colorWipe(strip.Color(0, 0, 255), 50); // Blue
-//  // Send a theater pixel chase in...
-//  theaterChase(strip.Color(127, 127, 127), 50); // White
-//  theaterChase(strip.Color(127,   0,   0), 50); // Red
-//  theaterChase(strip.Color(  0,   0, 127), 50); // Blue
-
-//  rainbow(20);
-//  rainbowCycle(20);
-//  theaterChaseRainbow(50);
+  
+  else if (myChar == RED) {
+     angryRed();
+     theaterChase(tube.Color(127, 0, 0), 0);
+  }
+  
+  else if (myChar == BLUE) {
+     blue;
+     theaterChase(tube.Color(0, 0, 127), 0);
+  }
+  
+  else if (myChar == LOWVIBE) {
+    vibeHalf();
+  }
+  
+  else if (myChar == HIGHVIBE) { 
+    vibeFull();
+  }
 }
 
 
@@ -130,66 +150,61 @@ void loop()
 
 void glowWhiteHalf() {
      brightness = float((sin(counter) +1.0 )/2) ;
-  for(uint16_t i=0; i<strip.numPixels(); i++) {
-       strip.setPixelColor(i, (brightness*63) , (brightness*63), (brightness*63));
-       strip.show();
+  for(uint16_t i=0; i<bulb.numPixels(); i++) {
+       bulb.setPixelColor(i, (brightness*63) , (brightness*63), (brightness*63));
+       bulb.show();
   }
 }
 
 void glowWhiteFull() {
   brightness = float((sin(counter) +1.0 )/2) ;
-  for(uint16_t i=0; i<strip.numPixels(); i++) {
-       strip.setPixelColor(i, (brightness*255) , (brightness*255), (brightness*255));
-       strip.show(); 
+  for(uint16_t i=0; i<bulb.numPixels(); i++) {
+       bulb.setPixelColor(i, (brightness*255) , (brightness*255), (brightness*255));
+       bulb.show(); 
   }
 }
 
 void glowWhiteFullSparks() {
+  if(int(counter)%6 == 0) {
+       colorWipe(bulb.Color(random(255), random(255), random(255)),0); // Red 
+      // colorWipe(bulb.Color(255, 0, 0), 50); // Red
+  }
   brightness = float((sin(counter) +1.0 )/2) ;
-  for(uint16_t i=0; i<strip.numPixels(); i++) {
-       strip.setPixelColor(i, (brightness*255) , (brightness*255), (brightness*255));
-       strip.show();
+  for(uint16_t i=0; i<bulb.numPixels(); i++) {
+       bulb.setPixelColor(i, (brightness*255) , (brightness*255), (brightness*255));
+       bulb.show();
   }
-  if(int(counter)%12 == 0) {
-       colorWipe(strip.Color(random(255), random(255), random(255)),0); // Red 
-      // colorWipe(strip.Color(255, 0, 0), 50); // Red
-  }
+  
 }
 
 void angryRed() {
    brightness = random(255) ;
-   for(uint16_t i=0; i<strip.numPixels(); i++) {    
-       strip.setPixelColor(i, (brightness*255) , 0,0);
-       strip.show();    
+   for(uint16_t i=0; i<bulb.numPixels(); i++) {    
+       bulb.setPixelColor(i, (brightness*255) , 0,0);
+       bulb.show();    
   }
    delay(100);
 }
 
 void blue() {
    brightness = float((sin(counter) +1.0 )/2) ;
-   for(uint16_t i=0; i<strip.numPixels(); i++) {    
-       strip.setPixelColor(i,  0, 0,(brightness*255));
-       strip.show();    
+   for(uint16_t i=0; i<bulb.numPixels(); i++) {    
+       bulb.setPixelColor(i,  0, 0,(brightness*255));
+       bulb.show();    
   }
    delay(100);
 }
 
 void colorWipe(uint32_t c, uint8_t wait) {
-  for(uint16_t i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, c);
-      strip.show();
+  for(uint16_t i=0; i<bulb.numPixels(); i++) {
+      bulb.setPixelColor(i, c);
+      bulb.show();
       delay(wait);
   }
 }
 
 
 
-void serialEvent() {
-  while (Serial.available()) {
-    int val = (int)Serial.read();
-  }
-  Serial.print(val);//FOR DEBUG
-}
 
 void vibeFull(){
  digitalWrite(VIBE, LOW);   // energizes the relay and lights the LED
@@ -205,8 +220,65 @@ void vibeHalf(){
   digitalWrite(VIBE, HIGH); 
 }
 
+//Theatre-style crawling lights.
+void theaterChase(uint32_t c, uint8_t wait) {
+  for (int j=0; j<10; j++) {  //do 10 cycles of chasing
+    for (int q=0; q < 3; q++) {
+      for (int i=0; i < tube.numPixels(); i=i+3) {
+        tube.setPixelColor(i+q, c);    //turn every third pixel on
+      }
+      tube.show();
+     
+      delay(wait);
+     
+     for (int i=0; i < tube.numPixels(); i=i+3) {
+       tube.setPixelColor(i+q, 0);        //turn every third pixel off
+     }
+    }
+  }
+}
 
 
+void ghostLightON() {
+  if(ghostLightState == false) {
+      ghostLightState = true;
+  if(int(counter)%50 == 0) {
+    digitalWrite(LIGHT1, LOW);
+  delay(random(500));   
+    digitalWrite(LIGHT1, HIGH); 
+    delay(random(500));
+    digitalWrite(LIGHT1, LOW);   
+  }
+  } 
+}
+
+void ghostLightOFF() {
+   digitalWrite(LIGHT1, LOW); 
+   ghostLightState = false;
+     
+  
+}
+
+//boolean cycleCheck(unsigned long *lastMillis, unsigned int cycle)
+//{
+// unsigned long currentMillis = millis();
+// if(currentMillis - *lastMillis >= cycle)
+// {
+//   *lastMillis = currentMillis;
+//   return true;
+// }
+// else
+//   return false;
+//}
+
+//void serialEvent() {
+//  if (mySerial.available()) {
+//    // get the new byte:
+//   myChar = (char)mySerial.read(); 
+//    // add it to the inputString:
+//    
+//  }
+//}
 
 
 
