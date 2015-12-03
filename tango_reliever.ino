@@ -153,7 +153,7 @@ Serial.println(myChar);
     }
     else if (myChar == REST) {
        Serial.println("rest"); 
-       
+       glowWhiteHalf();
     }
   
  }
