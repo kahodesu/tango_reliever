@@ -27,8 +27,7 @@ char BLUE = '6';
 char LOWVIBE = '7'; 
 char HIGHVIBE = '8'; 
 char REST = '9'; // white, vibe off, lights normal
-
-////////////////////////////////////OTHER VARIABLES////////////////////////////////////
+char stateArray[] = {NORMAL,ACTIVE,TIMETRAVEL,HOLD,RELEASE,RED,BLUE,LOWVIBE,HIGHVIBE,REST};////////////////////////////////////OTHER VARIABLES////////////////////////////////////
 //Neopixel variables
 #define NEOPIN1 8
 #define NEOPIN2 9
@@ -52,6 +51,7 @@ boolean ghostLightState =0;
 
 SoftwareSerial mySerial(rxPin, txPin); // RX, TX
 char myChar ;
+char tempChar;
 ////////////////////////////////////SET UP////////////////////////////////////
 void setup()
 {
@@ -88,7 +88,16 @@ void loop()
 
 
 if (mySerial.available()) {
-myChar = mySerial.read();
+  tempChar = mySerial.read();
+  for (int i = 0; i < sizeof(stateArray); i++){
+    if (tempChar == stateArray[i]){
+      myChar = tempChar;
+    } else {
+      Serial.print("tempChar: ");
+      Serial.println(tempChar);
+    }
+  }
+Serial.print("myChar: ");
 Serial.println(myChar);
 }
   
@@ -152,7 +161,7 @@ Serial.println(myChar);
       vibeFull();
     }
     else if (myChar == REST) {
-       Serial.println("rest"); 
+       Serial.println(": rest"); 
        glowWhiteHalf();
     }
   
