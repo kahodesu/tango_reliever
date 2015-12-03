@@ -17,7 +17,7 @@
 #include <SoftwareSerial.h>
  
 ////////////////////////////////////STATES////////////////////////////////////
-char  NORMAL = '0'; //half glow, half vibe. low flicker lights
+char NORMAL = '0'; //half glow, half vibe. low flicker lights
 char ACTIVE = '1'; // full glow, high vibe , fast flicker lights
 char TIMETRAVEL = '2'; //sparkly, high vibe, fast flicker lights
 char HOLD = '3'; //red, high vibe, fast flicker lights
@@ -26,6 +26,7 @@ char RED = '5';
 char BLUE = '6'; 
 char LOWVIBE = '7'; 
 char HIGHVIBE = '8'; 
+char REST = '9'; // white, vibe off, lights normal
 
 ////////////////////////////////////OTHER VARIABLES////////////////////////////////////
 //Neopixel variables
@@ -63,11 +64,11 @@ void setup()
   tube.show(); // Initialize all pixels to 'off'
   
   //Relay set up
-  pinMode(relayPin1, OUTPUT);      // sets the digital pin as output
+//  pinMode(relayPin1, OUTPUT);      // sets the digital pin as output
   pinMode(LIGHT1, OUTPUT);      // sets the digital pin as output
   pinMode(LIGHT2, OUTPUT);      // sets the digital pin as output
   pinMode(VIBE, OUTPUT);      // s                            ets the digital pin as output
-  digitalWrite(relayPin1, HIGH);        // Prevents relays from starting up engaged
+//  digitalWrite(relayPin1, HIGH);        // Prevents relays from starting up engaged
   digitalWrite(LIGHT1, HIGH);        // Prevents relays from starting up engaged
   digitalWrite(LIGHT2, HIGH);        // Prevents relays from starting up engaged
   digitalWrite(VIBE, HIGH);        // Prevents relays from starting up engaged
@@ -88,63 +89,74 @@ void loop()
 
 if (mySerial.available()) {
 myChar = mySerial.read();
-Serial.print(myChar);
- }
-
-  if (myChar == NORMAL) { //half glow, half vibe. low flicker lights 
-
-  glowWhiteHalf();
-  vibeHalf();
- theaterChase(tube.Color(127, 127, 127), 0);
-  }
-  
-  else if (myChar == ACTIVE) {// full glow, high vibe , fast flicker lights 
-     ghostLightON();
-     glowWhiteFull();
-    vibeFull();
-    theaterChase(tube.Color(127, 127, 127), 0);
-  }
-  
-  else if (myChar == TIMETRAVEL) { //sparkly, high vibe, fast flicker lights
-     ghostLightON();
-     glowWhiteFullSparks();
-    vibeFull();
-    theaterChase(tube.Color(127, 127, 127), 0);
-  }
-  
-  else if(myChar == HOLD) { //red, high vibe, fast flicker lights
-    ghostLightON();
-    angryRed();
-   theaterChase(bulb.Color(127,   0,   0), 0);
-   vibeFull();
- 
-  }
-  
-  else if (myChar == RELEASE) { // blue, SILENT, lights normal
-    ghostLightOFF();
-    blue();
-   theaterChase(tube.Color(0, 0, 127), 0);
-  }
-  
-  else if (myChar == RED) {
-     angryRed();
-     theaterChase(tube.Color(127, 0, 0), 0);
-  }
-  
-  else if (myChar == BLUE) {
-     blue;
-     theaterChase(tube.Color(0, 0, 127), 0);
-  }
-  
-  else if (myChar == LOWVIBE) {
-    vibeHalf();
-  }
-  
-  else if (myChar == HIGHVIBE) { 
-    vibeFull();
-  }
+Serial.println(myChar);
 }
-
+  
+    if (myChar == NORMAL) { //half glow, half vibe. low flicker lights 
+    Serial.println("NORMAL");
+    glowWhiteHalf();
+    vibeHalf();
+   theaterChase(tube.Color(127, 127, 127), 0);
+    }
+    
+    else if (myChar == ACTIVE) {// full glow, high vibe , fast flicker lights 
+    Serial.println("active ghostlighton, glowwhitefull, vibefull, theater");
+       ghostLightON();
+       glowWhiteFull();
+      vibeFull();
+      theaterChase(tube.Color(127, 127, 127), 0);
+    }
+    
+    else if (myChar == TIMETRAVEL) { //sparkly, high vibe, fast flicker lights
+      Serial.println("timetravel ghostlighton, glowwhitefull, vibefull, theater");
+      ghostLightON();
+      glowWhiteFullSparks();
+      vibeFull();
+      theaterChase(tube.Color(127, 127, 127), 0);
+    }
+    
+    else if(myChar == HOLD) { //red, high vibe, fast flicker lights
+      ghostLightON();
+      Serial.println("hold");
+      angryRed();
+      theaterChase(bulb.Color(127,   0,   0), 0);
+      vibeFull();
+   
+    }
+    
+    else if (myChar == RELEASE) { // blue, SILENT, lights normal
+      Serial.println("Release, TheaterChase");
+      ghostLightOFF();
+      blue();
+     theaterChase(tube.Color(0, 0, 127), 0);
+    }
+    
+    else if (myChar == RED) {
+      Serial.println("REd, AngryRed, and Theater");
+      angryRed();
+      theaterChase(tube.Color(127, 0, 0), 0);
+    }
+    
+    else if (myChar == BLUE) {
+         Serial.println("BLUE, TheaterChase");
+      theaterChase(tube.Color(0, 0, 127), 0);
+    }
+    
+    else if (myChar == LOWVIBE) {
+      Serial.println("Lowvibe");
+      vibeHalf();
+    }
+    
+    else if (myChar == HIGHVIBE) {
+     Serial.println("Highvibe"); 
+      vibeFull();
+    }
+    else if (myChar == REST) {
+       Serial.println("rest"); 
+       
+    }
+  
+ }
 
 ////////////////////////////////////NEOPIXEL FUNCTIONS////////////////////////////////////
 
@@ -209,8 +221,9 @@ void colorWipe(uint32_t c, uint8_t wait) {
 void vibeFull(){
  digitalWrite(VIBE, LOW);   // energizes the relay and lights the LED
  digitalWrite(relayPin1, LOW);   // energizes the relay and lights the LED
+ 
  delay(6);
-  digitalWrite(relayPin1, HIGH); 
+ digitalWrite(relayPin1, HIGH); 
 }
 
 
@@ -243,16 +256,21 @@ void ghostLightON() {
   if(ghostLightState == false) {
       ghostLightState = true;
   if(int(counter)%50 == 0) {
+   
     digitalWrite(LIGHT1, LOW);
-  delay(random(500));   
+     Serial.println("Ghostlight LOW");
+  delay(random(50));   
     digitalWrite(LIGHT1, HIGH); 
-    delay(random(500));
-    digitalWrite(LIGHT1, LOW);   
+     Serial.println("Ghostlight HIGH");
+    delay(random(50));
+    digitalWrite(LIGHT1, LOW); 
+    Serial.println("Ghostlight LOW");  
   }
   } 
 }
 
 void ghostLightOFF() {
+    Serial.println("Ghostlight Off");
    digitalWrite(LIGHT1, LOW); 
    ghostLightState = false;
      
@@ -279,9 +297,4 @@ void ghostLightOFF() {
 //    
 //  }
 //}
-
-
-
-
-
 
