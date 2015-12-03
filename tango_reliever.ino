@@ -93,7 +93,7 @@ if (mySerial.available()) {
     if (tempChar == stateArray[i]){
       myChar = tempChar;
     } else {
-      Serial.print("tempChar: ");
+//      Serial.print("tempChar: ");
 //      Serial.println(tempChar);
     }
   }
@@ -161,7 +161,7 @@ Serial.println(myChar);
       vibeFull();
     }
     else if (myChar == REST) {
-       Serial.println("rest"); 
+       Serial.println(": rest"); 
        glowWhiteHalf();
     }
   
