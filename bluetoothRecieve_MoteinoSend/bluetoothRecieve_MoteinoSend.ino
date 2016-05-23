@@ -23,9 +23,10 @@ int value = -1;
 int previousValue = -1;
 int btInput = 0;
 int sensorPin = A0;    // select the input pin for the potentiometer
-int sensorPin1 = A1; 
+int sensorPin1 = A2;
 int sensorValue = 0;  // variable to store the value coming from the sensor
 int sensorValue1 = 0;
+int analogBaseValue = 1010;
 char temp;
 
 typedef struct {
@@ -62,29 +63,36 @@ void loop() {
   // Read Analog values
   sensorValue = analogRead(sensorPin);
   sensorValue1 = analogRead(sensorPin1);
-  Serial.print(sensorValue);
-  Serial.print(",");
-  Serial.println(sensorValue1);
+  //if theres a change then send the values to the Tango over BT
+  if (sensorValue < analogBaseValue && sensorValue1 < analogBaseValue) {
+    Serial.print("sending charaters over BT: ");
+    Serial.print(sensorValue);
+    Serial.print(",");
+    Serial.println(sensorValue1);
+      
+    // Send any characters the Serial monitor prints to the bluetooth
+    BluetoothSerial.println("hold");
+  }
   /// Incoming Bluetooth data from arduino
   if (BluetoothSerial.available()) { // If the bluetooth sent any characters
-  char temp = BluetoothSerial.read();
-  if (temp != 10){
+    char temp = BluetoothSerial.read();
+    if (temp != 10) {
       btInput = temp;
       Serial.print("temp available: ");
       Serial.println(temp);
-   }
+    }
     // Send any characters the bluetooth prints to the serial monitor
     Serial.print("character available: ");
     Serial.println(btInput);
 
-   int currPeriod = millis() / TRANSMITPERIOD;
-    if (currPeriod != lastPeriod){
+    int currPeriod = millis() / TRANSMITPERIOD;
+    if (currPeriod != lastPeriod) {
       //fill in the struct with new values
       theData.nodeId = NODEID;
       theData.uptime = millis();
       theData.temp = 91.23; //it's hot!
       theData.spiritValue = btInput; //added for income bluetooth data
-  
+
       Serial.print("Sending struct (");
       Serial.print(sizeof(theData));
       Serial.print(" bytes) ... ");
@@ -97,13 +105,13 @@ void loop() {
     }
   }
   // If stuff was typed in the serial monitor
-//  if (Serial.available()) {
-//    temp = (char)Serial.read();
-//    Serial.println("sending charaters over BT");
-//    // Send any characters the Serial monitor prints to the bluetooth
-//    BluetoothSerial.println(temp);
-//    Serial.println(temp);
-//  }
+  //  if (Serial.available()) {
+  //    temp = (char)Serial.read();
+  //    Serial.println("sending charaters over BT");
+  //    // Send any characters the Serial monitor prints to the bluetooth
+  //    BluetoothSerial.println(temp);
+  //    Serial.println(temp);
+  //  }
   //process any serial input
   if (Serial.available() > 0 )  {
     char input = Serial.read();
@@ -124,7 +132,7 @@ void loop() {
     //  radio.encrypt(null);
 
     if (input == 'd') //d=dump flash area
- {
+    {
       Serial.println("Flash content:");
       int counter = 0;
 
@@ -151,7 +159,7 @@ void loop() {
   }
 
   //check for any received packets
-  if (radio.receiveDone()){
+  if (radio.receiveDone()) {
     Serial.print('['); Serial.print(radio.SENDERID, DEC); Serial.print("] ");
     for (byte i = 0; i < radio.DATALEN; i++)
       Serial.print((char)radio.DATA[i]);
@@ -168,12 +176,12 @@ void loop() {
   }
 
   int currPeriod = millis() / TRANSMITPERIOD;
-  if (currPeriod != lastPeriod){
+  if (currPeriod != lastPeriod) {
     //fill in the struct with new values
     theData.nodeId = NODEID;
     theData.uptime = millis();
     theData.temp = 91.23; //it's hot!
-    theData.spiritValue = btInput ;
+    theData.spiritValue = btInput;
 
     Serial.print("Sending struct (");
     Serial.print(sizeof(theData));

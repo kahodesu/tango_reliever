@@ -412,12 +412,15 @@ void ghostLightON() {
     if (int(counter) % 50 == 0) {
 
       digitalWrite(LIGHT1, LOW);
+      digitalWrite(LIGHT2, LOW);
       Serial.println("Ghostlight LOW");
       delay(random(50));
       digitalWrite(LIGHT1, HIGH);
+      digitalWrite(LIGHT2, HIGH);
       Serial.println("Ghostlight HIGH");
       delay(random(50));
       digitalWrite(LIGHT1, LOW);
+      digitalWrite(LIGHT2, LOW);
       Serial.println("Ghostlight LOW");
     }
   }
@@ -426,6 +429,7 @@ void ghostLightON() {
 void ghostLightOFF() {
   Serial.println("Ghostlight Off");
   digitalWrite(LIGHT1, LOW);
+  digitalWrite(LIGHT2, LOW);
   ghostLightState = false;
 
 
