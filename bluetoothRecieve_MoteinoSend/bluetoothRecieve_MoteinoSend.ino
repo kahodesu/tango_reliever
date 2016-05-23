@@ -64,14 +64,17 @@ void loop() {
   sensorValue = analogRead(sensorPin);
   sensorValue1 = analogRead(sensorPin1);
   //if theres a change then send the values to the Tango over BT
-  if (sensorValue < analogBaseValue && sensorValue1 < analogBaseValue) {
-    Serial.print("sending charaters over BT: ");
+  if (sensorValue < analogBaseValue || sensorValue1 < analogBaseValue) {
     Serial.print(sensorValue);
     Serial.print(",");
     Serial.println(sensorValue1);
-      
-    // Send any characters the Serial monitor prints to the bluetooth
-    BluetoothSerial.println("hold");
+    BluetoothSerial.println("halfhold");
+    if (sensorValue < analogBaseValue && sensorValue1 < analogBaseValue) {
+
+      Serial.print("sending charaters over BT: fullhold");
+      // Send any characters the Serial monitor prints to the bluetooth
+      BluetoothSerial.println("fullhold");
+    }
   }
   /// Incoming Bluetooth data from arduino
   if (BluetoothSerial.available()) { // If the bluetooth sent any characters

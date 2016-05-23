@@ -285,6 +285,7 @@ void spiritValueHanding(char spiritValue) {
   else if (myChar == RED) {
     Serial.println("REd, AngryRed, and Theater");
     angryRed();
+    ghostLightON();
     theaterChase(tube.Color(127, 0, 0), 0);
   }
 
