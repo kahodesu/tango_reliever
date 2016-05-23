@@ -22,6 +22,10 @@ int buttonPin = 3;
 int value = -1;
 int previousValue = -1;
 int btInput = 0;
+int sensorPin = A0;    // select the input pin for the potentiometer
+int sensorPin1 = A1; 
+int sensorValue = 0;  // variable to store the value coming from the sensor
+int sensorValue1 = 0;
 char temp;
 
 typedef struct {
@@ -55,7 +59,12 @@ void setup() {
 
 long lastPeriod = -1;
 void loop() {
-
+  // Read Analog values
+  sensorValue = analogRead(sensorPin);
+  sensorValue1 = analogRead(sensorPin1);
+  Serial.print(sensorValue);
+  Serial.print(",");
+  Serial.println(sensorValue1);
   /// Incoming Bluetooth data from arduino
   if (BluetoothSerial.available()) { // If the bluetooth sent any characters
   char temp = BluetoothSerial.read();
