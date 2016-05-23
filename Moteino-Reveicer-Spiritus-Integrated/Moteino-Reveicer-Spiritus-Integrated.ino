@@ -36,6 +36,7 @@ Adafruit_NeoPixel bulb = Adafruit_NeoPixel(60, NEOPIN1, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel tube = Adafruit_NeoPixel(15, NEOPIN2, NEO_GRB + NEO_KHZ800);
 float counter = 0;
 float brightness = 0;
+int chaseTime = 100; //theater chase time
 
 //Relay variables
 int relayPin1 = 4;                 // IN1 connected to digital pin 7
@@ -46,10 +47,21 @@ int VIBE = 7;                // IN4 connected to digital pin 10
 int val = 0;
 
 
-boolean ghostLightState = 0;
+//boolean ghostLightState = 0; //no longer needed?? 
+
+//Light Variables
+boolean ghostLightState1 = false;
+unsigned long startFlickerTime1;
+int randomFlicker1;
+boolean flickerOn1;
+boolean ghostLightState2 = false;
+unsigned long startFlickerTime2;
+int randomFlicker2;
+boolean flickerOn2;
+int flickerFreq = 2000;
 
 //SoftwareSerial mySerial(rxPin, txPin); // RX, TX
-char myChar ;
+char myChar;
 char tempChar;
 
 //------------------- Spiritus Code End---------------------//
@@ -89,7 +101,7 @@ void setup() {
  
   pinMode(ledpin, OUTPUT);      // s                            ets the digital pin as output
   digitalWrite(ledpin, HIGH);
-  ghostLightState = false;
+//  ghostLightState = false;  //no longer needed??
   ghostLightON();
   //------------------- Spiritus Code End---------------------//
   radio.initialize(FREQUENCY, NODEID, NETWORKID);
@@ -247,7 +259,7 @@ void spiritValueHanding(char spiritValue) {
     Serial.println("NORMAL");
     glowWhiteHalf();
     vibeHalf();
-    theaterChase(tube.Color(127, 127, 127), 0);
+    theaterChase(tube.Color(127, 127, 127), chaseTime);
   }
 
   else if (myChar == ACTIVE) {// full glow, high vibe , fast flicker lights
@@ -255,7 +267,7 @@ void spiritValueHanding(char spiritValue) {
     ghostLightON();
     glowWhiteFull();
     vibeFull();
-    theaterChase(tube.Color(127, 127, 127), 0);
+    theaterChase(tube.Color(127, 127, 127), chaseTime);
   }
 
   else if (myChar == TIMETRAVEL) { //sparkly, high vibe, fast flicker lights
@@ -263,14 +275,14 @@ void spiritValueHanding(char spiritValue) {
     ghostLightON();
     glowWhiteFullSparks();
     vibeFull();
-    theaterChase(tube.Color(127, 127, 127), 0);
+    theaterChase(tube.Color(127, 127, 127), chaseTime);
   }
 
   else if (myChar == HOLD) { //red, high vibe, fast flicker lights
     ghostLightON();
     Serial.println("hold");
     angryRed();
-    theaterChase(bulb.Color(127,   0,   0), 0);
+    theaterChase(bulb.Color(127,   0,   0), chaseTime);
     vibeFull();
 
   }
@@ -279,19 +291,19 @@ void spiritValueHanding(char spiritValue) {
     Serial.println("Release, TheaterChase");
     ghostLightOFF();
     blue();
-    theaterChase(tube.Color(0, 0, 127), 0);
+    theaterChase(tube.Color(0, 0, 127), chaseTime);
   }
 
   else if (myChar == RED) {
     Serial.println("REd, AngryRed, and Theater");
     angryRed();
     ghostLightON();
-    theaterChase(tube.Color(127, 0, 0), 0);
+    theaterChase(tube.Color(127, 0, 0), chaseTime);
   }
 
   else if (myChar == BLUE) {
     Serial.println("BLUE, TheaterChase");
-    theaterChase(tube.Color(0, 0, 127), 0);
+    theaterChase(tube.Color(0, 0, 127), chaseTime);
   }
 
   else if (myChar == LOWVIBE) {
@@ -408,31 +420,53 @@ void theaterChase(uint32_t c, uint8_t wait) {
 
 
 void ghostLightON() {
-  if (ghostLightState == false) {
-    ghostLightState = true;
-    if (int(counter) % 50 == 0) {
+   
+/////////////// FLICKERING FOR LIGHT 1 ///////////////
+  if(ghostLightState1 == false) {
+    ghostLightState1 = true;
+    startFlickerTime1 = millis();
+    randomFlicker1 = int(random(500, flickerFreq));
+  }
 
-      digitalWrite(LIGHT1, LOW);
-      digitalWrite(LIGHT2, LOW);
-      Serial.println("Ghostlight LOW");
-      delay(random(50));
-      digitalWrite(LIGHT1, HIGH);
-      digitalWrite(LIGHT2, HIGH);
-      Serial.println("Ghostlight HIGH");
-      delay(random(50));
-      digitalWrite(LIGHT1, LOW);
-      digitalWrite(LIGHT2, LOW);
-      Serial.println("Ghostlight LOW");
-    }
+  if (millis() - startFlickerTime1 > randomFlicker1) {
+    flickerOn1 = !flickerOn1;
+    ghostLightState1 = false;
+  }
+
+  if (flickerOn1) {
+    digitalWrite(LIGHT1, HIGH); 
+  }
+
+  else {
+    digitalWrite(LIGHT1, LOW); 
+  }  
+  
+  /////////////// FLICKERING FOR LIGHT 2 ///////////////
+    if(ghostLightState2 == false) {
+    ghostLightState2 = true;
+    startFlickerTime2 = millis();
+    randomFlicker2 = int(random(500, flickerFreq));
+  }
+
+  if (millis() - startFlickerTime2 > randomFlicker2) {
+    flickerOn2 = !flickerOn2;
+    ghostLightState2 = false;
+  }
+
+  if (flickerOn2) {
+    digitalWrite(LIGHT2, HIGH); 
+  }
+
+  else {
+    digitalWrite(LIGHT2, LOW); 
   }
 }
 
 void ghostLightOFF() {
   Serial.println("Ghostlight Off");
-  digitalWrite(LIGHT1, LOW);
-  digitalWrite(LIGHT2, LOW);
-  ghostLightState = false;
-
-
+  digitalWrite(LIGHT1, HIGH); 
+  digitalWrite(LIGHT2, HIGH); 
+  ghostLightState1 = false;
+  ghostLightState2 = false;
 }
 //------------------- Spiritus Code End---------------------//
