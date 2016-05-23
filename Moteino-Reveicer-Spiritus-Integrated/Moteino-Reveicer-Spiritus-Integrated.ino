@@ -36,7 +36,7 @@ Adafruit_NeoPixel bulb = Adafruit_NeoPixel(60, NEOPIN1, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel tube = Adafruit_NeoPixel(15, NEOPIN2, NEO_GRB + NEO_KHZ800);
 float counter = 0;
 float brightness = 0;
-int chaseTime = 100; //theater chase time
+int chaseTime = 25; //theater chase time
 
 //Relay variables
 int relayPin1 = 4;                 // IN1 connected to digital pin 7
@@ -52,13 +52,13 @@ int val = 0;
 //Light Variables
 boolean ghostLightState1 = false;
 unsigned long startFlickerTime1;
-int randomFlicker1;
+unsigned long randomFlicker1;
 boolean flickerOn1;
 boolean ghostLightState2 = false;
 unsigned long startFlickerTime2;
-int randomFlicker2;
+unsigned long randomFlicker2;
 boolean flickerOn2;
-int flickerFreq = 2000;
+float flickerFreq = 6000;
 
 //SoftwareSerial mySerial(rxPin, txPin); // RX, TX
 char myChar;
@@ -414,21 +414,34 @@ void theaterChase(uint32_t c, uint8_t wait) {
       for (int i = 0; i < tube.numPixels(); i = i + 3) {
         tube.setPixelColor(i + q, 0);      //turn every third pixel off
       }
+      /////////////
+            for (int i = 0; i < bulb.numPixels(); i = i + 3) {
+        bulb.setPixelColor(i + q, c);  //turn every third pixel on
+      }
+      bulb.show();
+
+      delay(wait);
+
+      for (int i = 0; i < bulb.numPixels(); i = i + 3) {
+        bulb.setPixelColor(i + q, 0);      //turn every third pixel off
+      }
+      
     }
   }
 }
 
 
 void ghostLightON() {
-   
+ unsigned long currentTime = millis();
 /////////////// FLICKERING FOR LIGHT 1 ///////////////
   if(ghostLightState1 == false) {
     ghostLightState1 = true;
     startFlickerTime1 = millis();
-    randomFlicker1 = int(random(500, flickerFreq));
+    randomFlicker1 = random(0, flickerFreq);
+  
   }
 
-  if (millis() - startFlickerTime1 > randomFlicker1) {
+  if ((currentTime - startFlickerTime1)*10 > randomFlicker1 && ghostLightState1) {
     flickerOn1 = !flickerOn1;
     ghostLightState1 = false;
   }
@@ -445,10 +458,10 @@ void ghostLightON() {
     if(ghostLightState2 == false) {
     ghostLightState2 = true;
     startFlickerTime2 = millis();
-    randomFlicker2 = int(random(500, flickerFreq));
+    randomFlicker2 = random(0, flickerFreq);
   }
 
-  if (millis() - startFlickerTime2 > randomFlicker2) {
+  if ((currentTime- startFlickerTime2)*10 > randomFlicker2 && ghostLightState2) {
     flickerOn2 = !flickerOn2;
     ghostLightState2 = false;
   }
@@ -460,6 +473,9 @@ void ghostLightON() {
   else {
     digitalWrite(LIGHT2, LOW); 
   }
+    Serial.print(currentTime - startFlickerTime1);
+    Serial.print(",");
+    Serial.println(randomFlicker1);
 }
 
 void ghostLightOFF() {
